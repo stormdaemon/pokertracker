@@ -1,0 +1,1266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║  CAHIER DES CHARGES — POKER TRACKER PRO                           ║
+  ║  Application de Tracking Poker                                     ║
+  ║  Version 1.0 — 27 février 2026                                     ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+-->
+<cahier_des_charges version="1.0" date="2026-02-27" langue="fr">
+
+  <!-- ================================================================ -->
+  <!--  1. INFORMATIONS GÉNÉRALES                                       -->
+  <!-- ================================================================ -->
+  <informations_generales>
+    <projet>
+      <nom>Poker Tracker Pro</nom>
+      <nom_code>PTP</nom_code>
+      <description>
+        Application web et mobile de tracking de sessions de poker permettant
+        aux joueurs de suivre leurs performances, analyser leurs résultats,
+        gérer leur bankroll et progresser grâce à des statistiques avancées
+        et des visualisations intuitives.
+      </description>
+      <date_redaction>2026-02-27</date_redaction>
+      <version_document>1.0</version_document>
+    </projet>
+
+    <contexte>
+      <problematique>
+        Les joueurs de poker sérieux ont besoin d'un outil moderne, beau et
+        performant pour tracker leurs sessions (live et online), analyser
+        leur rentabilité par format/variante/casino, gérer leur bankroll
+        de manière responsable, et identifier leurs forces et faiblesses.
+        Les solutions existantes sont souvent datées, lentes, ou mal designées.
+      </problematique>
+      <cible>
+        Joueurs de poker récréatifs à semi-professionnels, jouant en live
+        (casinos, clubs, home games) et/ou en ligne (tournois, cash games).
+      </cible>
+      <objectifs_principaux>
+        <objectif priorite="1">Interface belle, moderne et intuitive (mobile-first)</objectif>
+        <objectif priorite="2">Saisie rapide de sessions en moins de 30 secondes</objectif>
+        <objectif priorite="3">Statistiques avancées et visualisations interactives</objectif>
+        <objectif priorite="4">Gestion de bankroll avec alertes et recommandations</objectif>
+        <objectif priorite="5">Logique métier irréprochable (calculs, devises, fuseaux horaires)</objectif>
+      </objectifs_principaux>
+    </contexte>
+  </informations_generales>
+
+  <!-- ================================================================ -->
+  <!--  2. STACK TECHNIQUE                                              -->
+  <!-- ================================================================ -->
+  <stack_technique mise_a_jour="2026-02-27">
+
+    <frontend>
+      <framework nom="Next.js" version="16.1.6" justification="App Router, RSC, Turbopack stable, React 19.2, performances optimales">
+        <url>https://nextjs.org</url>
+      </framework>
+      <runtime nom="Bun" version="1.x" justification="Package manager ultra-rapide, lockfile déterministe, compatibilité Node.js native">
+        <url>https://bun.sh</url>
+        <usage>
+          <commande>bun install — installation des dépendances</commande>
+          <commande>bun run dev — lancement du dev server (via next dev)</commande>
+          <commande>bun run build — build production</commande>
+          <commande>bun add [pkg] — ajout de dépendances</commande>
+          <commande>bunx shadcn@latest add [component] — ajout composants shadcn/ui</commande>
+        </usage>
+        <note>Bun est utilisé uniquement comme package manager et task runner. Le runtime Next.js reste Node.js pour la compatibilité Vercel.</note>
+      </runtime>
+      <langage nom="TypeScript" version="5.7+" justification="Typage strict, DX supérieure, sécurité du code" />
+      <css nom="Tailwind CSS" version="4.x" justification="CSS-first config, @theme directive, OKLCH, performances">
+        <url>https://tailwindcss.com</url>
+      </css>
+      <composants nom="shadcn/ui" version="latest (février 2026)" justification="Radix UI + Tailwind v4, accessibilité, composants ownable, Base UI support">
+        <url>https://ui.shadcn.com</url>
+        <style>new-york</style>
+        <couleurs>OKLCH</couleurs>
+      </composants>
+      <icones nom="Lucide React" version="latest" />
+      <charts nom="Recharts" version="2.x" justification="Composants React natifs, responsive, animations" />
+      <formulaires>
+        <validation nom="Zod" version="3.x" justification="Schema-first, inférence TypeScript" />
+        <gestion nom="React Hook Form" version="7.x" justification="Performances, intégration Zod native" />
+      </formulaires>
+      <state_management nom="Zustand" version="5.x" justification="Léger, TypeScript-first, stores isolés" />
+      <date_handling nom="date-fns" version="4.x" justification="Tree-shakable, immutable, timezone support" />
+      <animations nom="Framer Motion" version="11.x" justification="Animations fluides, View Transitions API" />
+      <tables nom="TanStack Table" version="8.x" justification="Headless, tri/filtre/pagination avancés" />
+    </frontend>
+
+    <backend>
+      <baas nom="Supabase" version="latest (février 2026)" justification="PostgreSQL managé, Auth, Realtime, RLS, Edge Functions, PostgREST v14">
+        <url>https://supabase.com</url>
+        <fonctionnalites>
+          <fonctionnalite>PostgreSQL 16+ avec Row Level Security</fonctionnalite>
+          <fonctionnalite>Authentication (email, Google, Apple, magic link)</fonctionnalite>
+          <fonctionnalite>Realtime subscriptions pour sync multi-devices</fonctionnalite>
+          <fonctionnalite>Edge Functions (Deno) pour la logique serveur</fonctionnalite>
+          <fonctionnalite>PostgREST v14 (20% RPS en plus)</fonctionnalite>
+          <fonctionnalite>Storage pour exports et avatars</fonctionnalite>
+          <fonctionnalite>Database Branching pour le développement</fonctionnalite>
+        </fonctionnalites>
+      </baas>
+      <orm nom="Drizzle ORM" version="latest" justification="TypeScript-first, SQL-like, léger, migrations automatiques" />
+      <mcp nom="Supabase MCP Server" justification="Permet à l'IA agent de contrôler directement la base de données Supabase via le protocole MCP">
+        <url>https://github.com/supabase-community/supabase-mcp</url>
+        <configuration>
+          <![CDATA[
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "bunx",
+      "args": ["@anthropic-ai/mcp-server-supabase"],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "<personal-access-token>",
+        "SUPABASE_PROJECT_REF": "<project-ref>"
+      }
+    }
+  }
+}
+          ]]>
+        </configuration>
+        <capacites>
+          <capacite>Lister et créer des projets Supabase</capacite>
+          <capacite>Exécuter du SQL directement (CREATE TABLE, ALTER, INSERT, SELECT)</capacite>
+          <capacite>Gérer les migrations et le schema</capacite>
+          <capacite>Appliquer les RLS policies</capacite>
+          <capacite>Gérer les Edge Functions</capacite>
+          <capacite>Consulter les logs et le monitoring</capacite>
+          <capacite>Gérer les branches de développement (Database Branching)</capacite>
+        </capacites>
+        <note_ia>
+          L'IA agent utilise le Supabase MCP Server comme interface principale pour toute
+          interaction avec la base de données : création de tables, application des migrations,
+          test des requêtes, vérification des RLS policies. Cela remplace l'usage manuel du
+          dashboard Supabase ou du CLI supabase pour le développement assisté par IA.
+        </note_ia>
+      </mcp>
+    </backend>
+
+    <deploiement>
+      <hebergement nom="Vercel" justification="Intégration native Next.js 16, Edge Runtime, ISR, analytics">
+        <url>https://vercel.com</url>
+        <projet_existant>
+          <url_dashboard>https://vercel.com/theo-lafonts-projects/pokertracker</url_dashboard>
+          <nom>pokertracker</nom>
+          <owner>theo-lafonts-projects</owner>
+        </projet_existant>
+      </hebergement>
+      <cli nom="Vercel CLI" version="latest" usage_limite="true">
+        <installation>bun add -g vercel</installation>
+        <usage>
+          <commande>vercel link — lier le repo local au projet theo-lafonts-projects/pokertracker</commande>
+          <commande>vercel env pull .env.local — récupérer les variables d'environnement du projet</commande>
+          <commande>vercel env add [VAR_NAME] — ajouter une variable d'environnement</commande>
+          <commande>vercel env ls — lister les variables configurées</commande>
+        </usage>
+        <note_ia>
+          L'IA agent utilise Vercel CLI UNIQUEMENT pour la gestion des variables
+          d'environnement (pull, add, ls). Le déploiement est géré automatiquement
+          par l'intégration Git : chaque push sur main déclenche un deploy production,
+          chaque push sur une branche crée un preview deployment. L'IA ne doit PAS
+          utiliser "vercel deploy" manuellement.
+        </note_ia>
+      </cli>
+      <workflow_deploiement>
+        <description>Le repo est déjà initialisé et connecté en remote GitHub + Vercel.</description>
+        <etape ordre="1">L'IA développe et commit sur une branche feature</etape>
+        <etape ordre="2">git push → Vercel crée automatiquement un preview deployment</etape>
+        <etape ordre="3">Merge sur main → Vercel déploie automatiquement en production</etape>
+        <regle>Ne jamais utiliser "vercel deploy" — le Git push suffit</regle>
+        <regle>Utiliser Vercel CLI uniquement pour vercel env pull/add/ls</regle>
+      </workflow_deploiement>
+      <ci_cd nom="GitHub Actions" note="Optionnel, en complément du deploy Git-based Vercel (lint, tests)" />
+      <monitoring nom="Vercel Analytics + Sentry" />
+    </deploiement>
+
+    <qualite>
+      <tests_unitaires nom="Vitest" version="3.x" />
+      <tests_e2e nom="Playwright" version="1.x" />
+      <linting nom="ESLint" version="9.x" config="eslint-config-next" />
+      <formatting nom="Prettier" version="3.x" />
+      <pre_commit nom="Husky + lint-staged" />
+    </qualite>
+
+    <mobile>
+      <strategie>PWA (Progressive Web App) avec manifest, service worker, et push notifications</strategie>
+      <justification>
+        Approche mobile-first via PWA pour maximiser la portée sans coût de développement
+        natif. Installation sur écran d'accueil, mode offline, notifications push.
+        Évolution possible vers React Native / Expo si le marché le justifie.
+      </justification>
+    </mobile>
+  </stack_technique>
+
+  <!-- ================================================================ -->
+  <!--  3. ARCHITECTURE APPLICATIVE                                     -->
+  <!-- ================================================================ -->
+  <architecture>
+
+    <principes>
+      <principe>Server-first avec App Router (RSC par défaut)</principe>
+      <principe>Separation of concerns : app/ = composition, pas de logique métier</principe>
+      <principe>Feature-based folder structure</principe>
+      <principe>Row Level Security sur toutes les tables (zero-trust)</principe>
+      <principe>Optimistic UI pour la saisie de sessions</principe>
+      <principe>Mobile-first responsive design</principe>
+      <principe>Dark mode natif (system preference + toggle)</principe>
+    </principes>
+
+    <structure_dossiers>
+      <![CDATA[
+poker-tracker-pro/
+├── app/                          # Next.js App Router (composition only)
+│   ├── (auth)/                   # Route group: login, register, forgot-password
+│   ├── (dashboard)/              # Route group: authenticated pages
+│   │   ├── dashboard/            # Vue d'ensemble
+│   │   ├── sessions/             # Liste et détail des sessions
+│   │   │   ├── page.tsx
+│   │   │   ├── [id]/page.tsx
+│   │   │   └── new/page.tsx
+│   │   ├── bankroll/             # Gestion bankroll
+│   │   ├── stats/                # Statistiques avancées
+│   │   ├── tournaments/          # Suivi tournois
+│   │   ├── locations/            # Gestion des lieux
+│   │   └── settings/             # Paramètres utilisateur
+│   ├── api/                      # API Routes (webhooks, cron)
+│   ├── layout.tsx                # Root layout
+│   └── globals.css               # Tailwind v4 + theme OKLCH
+├── components/
+│   ├── ui/                       # shadcn/ui components
+│   ├── forms/                    # Formulaires composés
+│   ├── charts/                   # Composants graphiques
+│   ├── layout/                   # Header, Sidebar, Navigation
+│   └── shared/                   # Composants partagés
+├── features/                     # Feature modules
+│   ├── sessions/                 # Logique sessions
+│   ├── bankroll/                 # Logique bankroll
+│   ├── stats/                    # Logique statistiques
+│   ├── tournaments/              # Logique tournois
+│   └── auth/                     # Logique authentification
+├── lib/
+│   ├── supabase/                 # Client, types, helpers
+│   ├── utils/                    # Utilitaires généraux
+│   ├── validators/               # Schémas Zod
+│   ├── constants/                # Constantes métier
+│   └── hooks/                    # Custom hooks
+├── stores/                       # Zustand stores
+├── types/                        # Types TypeScript globaux
+├── supabase/
+│   ├── migrations/               # SQL migrations
+│   ├── seed.sql                  # Données de test
+│   └── functions/                # Edge Functions
+└── public/                       # Assets statiques
+      ]]>
+    </structure_dossiers>
+  </architecture>
+
+  <!-- ================================================================ -->
+  <!--  4. MODÈLE DE DONNÉES                                           -->
+  <!-- ================================================================ -->
+  <modele_de_donnees>
+
+    <table nom="profiles" description="Profil utilisateur étendu">
+      <colonne nom="id" type="UUID" pk="true" fk="auth.users.id" />
+      <colonne nom="display_name" type="TEXT" nullable="false" />
+      <colonne nom="avatar_url" type="TEXT" nullable="true" />
+      <colonne nom="default_currency" type="TEXT" default="EUR" description="Code ISO 4217" />
+      <colonne nom="timezone" type="TEXT" default="Europe/Paris" description="IANA timezone" />
+      <colonne nom="default_game_type" type="game_type_enum" nullable="true" />
+      <colonne nom="default_stake" type="TEXT" nullable="true" />
+      <colonne nom="bankroll_initial" type="NUMERIC(12,2)" default="0" />
+      <colonne nom="created_at" type="TIMESTAMPTZ" default="now()" />
+      <colonne nom="updated_at" type="TIMESTAMPTZ" default="now()" />
+      <rls>Chaque utilisateur ne voit que son propre profil</rls>
+    </table>
+
+    <table nom="locations" description="Lieux de jeu (casinos, clubs, plateformes online)">
+      <colonne nom="id" type="UUID" pk="true" default="gen_random_uuid()" />
+      <colonne nom="user_id" type="UUID" fk="profiles.id" nullable="false" />
+      <colonne nom="name" type="TEXT" nullable="false" />
+      <colonne nom="type" type="location_type_enum" description="casino | club | home_game | online" />
+      <colonne nom="address" type="TEXT" nullable="true" />
+      <colonne nom="city" type="TEXT" nullable="true" />
+      <colonne nom="country" type="TEXT" nullable="true" />
+      <colonne nom="platform_url" type="TEXT" nullable="true" description="URL pour les salles en ligne" />
+      <colonne nom="notes" type="TEXT" nullable="true" />
+      <colonne nom="is_favorite" type="BOOLEAN" default="false" />
+      <colonne nom="is_archived" type="BOOLEAN" default="false" />
+      <colonne nom="created_at" type="TIMESTAMPTZ" default="now()" />
+      <rls>Chaque utilisateur ne voit que ses propres lieux</rls>
+    </table>
+
+    <table nom="sessions" description="Sessions de cash game">
+      <colonne nom="id" type="UUID" pk="true" default="gen_random_uuid()" />
+      <colonne nom="user_id" type="UUID" fk="profiles.id" nullable="false" />
+      <colonne nom="location_id" type="UUID" fk="locations.id" nullable="true" />
+
+      <!-- Temporalité -->
+      <colonne nom="started_at" type="TIMESTAMPTZ" nullable="false" description="Début de la session (timezone-aware)" />
+      <colonne nom="ended_at" type="TIMESTAMPTZ" nullable="true" description="Fin de la session (null = en cours)" />
+      <colonne nom="duration_minutes" type="INTEGER" nullable="true" description="Calculé automatiquement, override possible" />
+
+      <!-- Type de jeu -->
+      <colonne nom="game_type" type="game_type_enum" nullable="false" description="nlhe | plo | plo5 | mixed | other" />
+      <colonne nom="game_format" type="game_format_enum" nullable="false" description="cash_game | tournament | sit_and_go" />
+      <colonne nom="is_online" type="BOOLEAN" default="false" />
+
+      <!-- Stakes (cash game) -->
+      <colonne nom="small_blind" type="NUMERIC(10,2)" nullable="true" />
+      <colonne nom="big_blind" type="NUMERIC(10,2)" nullable="true" />
+      <colonne nom="ante" type="NUMERIC(10,2)" nullable="true" />
+      <colonne nom="straddle" type="BOOLEAN" default="false" />
+      <colonne nom="max_buyin_bb" type="INTEGER" nullable="true" description="Max buy-in en BB" />
+
+      <!-- Financier -->
+      <colonne nom="currency" type="TEXT" default="EUR" description="ISO 4217" />
+      <colonne nom="buy_in_total" type="NUMERIC(12,2)" nullable="false" description="Total acheté (somme de tous les buy-ins)" />
+      <colonne nom="cash_out" type="NUMERIC(12,2)" nullable="true" description="Montant encaissé en fin de session" />
+      <colonne nom="profit" type="NUMERIC(12,2)" generated="true" description="cash_out - buy_in_total (colonne générée)" />
+      <colonne nom="tip" type="NUMERIC(10,2)" default="0" description="Pourboires donnés aux dealers" />
+      <colonne nom="rake_paid" type="NUMERIC(10,2)" nullable="true" description="Estimation du rake payé" />
+      <colonne nom="expenses" type="NUMERIC(10,2)" default="0" description="Frais annexes (voyage, food, etc.)" />
+      <colonne nom="net_profit" type="NUMERIC(12,2)" generated="true" description="profit - tip - expenses" />
+
+      <!-- Métadonnées -->
+      <colonne nom="table_size" type="INTEGER" nullable="true" check="table_size BETWEEN 2 AND 10" description="Nombre de joueurs à la table" />
+      <colonne nom="mood_before" type="SMALLINT" nullable="true" check="mood_before BETWEEN 1 AND 5" />
+      <colonne nom="mood_after" type="SMALLINT" nullable="true" check="mood_after BETWEEN 1 AND 5" />
+      <colonne nom="focus_level" type="SMALLINT" nullable="true" check="focus_level BETWEEN 1 AND 5" />
+      <colonne nom="notes" type="TEXT" nullable="true" />
+      <colonne nom="tags" type="TEXT[]" default="ARRAY[]::TEXT[]" description="Tags libres pour catégorisation" />
+
+      <!-- Système -->
+      <colonne nom="is_active" type="BOOLEAN" default="true" description="true = session en cours" />
+      <colonne nom="created_at" type="TIMESTAMPTZ" default="now()" />
+      <colonne nom="updated_at" type="TIMESTAMPTZ" default="now()" />
+
+      <index colonnes="user_id, started_at DESC" />
+      <index colonnes="user_id, game_type" />
+      <index colonnes="user_id, location_id" />
+      <index colonnes="user_id, is_active" where="is_active = true" />
+
+      <contrainte type="CHECK" expression="ended_at IS NULL OR ended_at > started_at" />
+      <contrainte type="CHECK" expression="buy_in_total >= 0" />
+      <contrainte type="CHECK" expression="cash_out IS NULL OR cash_out >= 0" />
+
+      <colonnes_generees>
+        <colonne nom="profit" expression="CASE WHEN cash_out IS NOT NULL THEN cash_out - buy_in_total ELSE NULL END" />
+        <colonne nom="net_profit" expression="CASE WHEN cash_out IS NOT NULL THEN cash_out - buy_in_total - COALESCE(tip, 0) - COALESCE(expenses, 0) ELSE NULL END" />
+        <colonne nom="duration_minutes" expression="CASE WHEN ended_at IS NOT NULL AND started_at IS NOT NULL THEN EXTRACT(EPOCH FROM (ended_at - started_at)) / 60 ELSE NULL END" />
+      </colonnes_generees>
+
+      <rls>Chaque utilisateur ne voit que ses propres sessions</rls>
+    </table>
+
+    <table nom="buy_ins" description="Détail des buy-ins individuels par session">
+      <colonne nom="id" type="UUID" pk="true" default="gen_random_uuid()" />
+      <colonne nom="session_id" type="UUID" fk="sessions.id" on_delete="CASCADE" />
+      <colonne nom="user_id" type="UUID" fk="profiles.id" />
+      <colonne nom="amount" type="NUMERIC(12,2)" nullable="false" check="amount > 0" />
+      <colonne nom="bought_at" type="TIMESTAMPTZ" default="now()" />
+      <colonne nom="notes" type="TEXT" nullable="true" />
+      <rls>Chaque utilisateur ne voit que ses propres buy-ins</rls>
+    </table>
+
+    <table nom="tournaments" description="Sessions de tournoi">
+      <colonne nom="id" type="UUID" pk="true" default="gen_random_uuid()" />
+      <colonne nom="session_id" type="UUID" fk="sessions.id" on_delete="CASCADE" unique="true" />
+      <colonne nom="user_id" type="UUID" fk="profiles.id" />
+      <colonne nom="tournament_name" type="TEXT" nullable="true" />
+      <colonne nom="buy_in_amount" type="NUMERIC(10,2)" nullable="false" description="Buy-in de base" />
+      <colonne nom="fee" type="NUMERIC(10,2)" default="0" description="Rake/fee du tournoi" />
+      <colonne nom="rebuy_count" type="INTEGER" default="0" />
+      <colonne nom="rebuy_cost" type="NUMERIC(10,2)" default="0" description="Coût unitaire rebuy" />
+      <colonne nom="addon_count" type="INTEGER" default="0" />
+      <colonne nom="addon_cost" type="NUMERIC(10,2)" default="0" description="Coût unitaire add-on" />
+      <colonne nom="total_entries" type="INTEGER" nullable="true" description="Nombre total de joueurs inscrits" />
+      <colonne nom="finish_position" type="INTEGER" nullable="true" check="finish_position >= 1" />
+      <colonne nom="prize_won" type="NUMERIC(12,2)" default="0" />
+      <colonne nom="bounties_won" type="NUMERIC(10,2)" default="0" description="Pour les tournois bounty/PKO" />
+      <colonne nom="is_bounty" type="BOOLEAN" default="false" />
+      <colonne nom="guaranteed_prize" type="NUMERIC(12,2)" nullable="true" />
+      <colonne nom="structure_type" type="tournament_structure_enum" description="freezeout | rebuy | bounty | pko | satellite" />
+      <colonne nom="itm" type="BOOLEAN" generated="true" description="In The Money (prize_won > 0)" />
+
+      <colonnes_generees>
+        <colonne nom="total_invested" expression="buy_in_amount + fee + (rebuy_count * rebuy_cost) + (addon_count * addon_cost)" />
+        <colonne nom="roi_percent" expression="CASE WHEN (buy_in_amount + fee + (rebuy_count * rebuy_cost) + (addon_count * addon_cost)) > 0 THEN ((prize_won + bounties_won - buy_in_amount - fee - (rebuy_count * rebuy_cost) - (addon_count * addon_cost)) / (buy_in_amount + fee + (rebuy_count * rebuy_cost) + (addon_count * addon_cost))) * 100 ELSE 0 END" />
+      </colonnes_generees>
+
+      <rls>Chaque utilisateur ne voit que ses propres tournois</rls>
+    </table>
+
+    <table nom="bankroll_transactions" description="Historique des mouvements de bankroll">
+      <colonne nom="id" type="UUID" pk="true" default="gen_random_uuid()" />
+      <colonne nom="user_id" type="UUID" fk="profiles.id" nullable="false" />
+      <colonne nom="type" type="bankroll_tx_type_enum" description="deposit | withdrawal | session_result | adjustment | bonus" />
+      <colonne nom="amount" type="NUMERIC(12,2)" nullable="false" description="Positif = entrée, négatif = sortie" />
+      <colonne nom="balance_after" type="NUMERIC(12,2)" nullable="false" description="Solde après transaction" />
+      <colonne nom="session_id" type="UUID" fk="sessions.id" nullable="true" description="Référence session si applicable" />
+      <colonne nom="currency" type="TEXT" default="EUR" />
+      <colonne nom="description" type="TEXT" nullable="true" />
+      <colonne nom="created_at" type="TIMESTAMPTZ" default="now()" />
+      <index colonnes="user_id, created_at DESC" />
+      <rls>Chaque utilisateur ne voit que ses propres transactions</rls>
+    </table>
+
+    <table nom="hand_notes" description="Notes sur des mains spécifiques">
+      <colonne nom="id" type="UUID" pk="true" default="gen_random_uuid()" />
+      <colonne nom="session_id" type="UUID" fk="sessions.id" on_delete="CASCADE" />
+      <colonne nom="user_id" type="UUID" fk="profiles.id" />
+      <colonne nom="hand_number" type="INTEGER" nullable="true" />
+      <colonne nom="hero_position" type="position_enum" nullable="true" description="UTG | MP | CO | BTN | SB | BB" />
+      <colonne nom="hero_cards" type="TEXT" nullable="true" description="Ex: AhKs" />
+      <colonne nom="board" type="TEXT" nullable="true" description="Ex: Ah7d2c Ks 3h" />
+      <colonne nom="pot_size" type="NUMERIC(10,2)" nullable="true" />
+      <colonne nom="result" type="NUMERIC(10,2)" nullable="true" description="Gain/perte sur la main" />
+      <colonne nom="action_summary" type="TEXT" nullable="true" description="Résumé des actions" />
+      <colonne nom="villain_description" type="TEXT" nullable="true" />
+      <colonne nom="lesson_learned" type="TEXT" nullable="true" description="Takeaway de la main" />
+      <colonne nom="tags" type="TEXT[]" default="ARRAY[]::TEXT[]" />
+      <colonne nom="created_at" type="TIMESTAMPTZ" default="now()" />
+      <rls>Chaque utilisateur ne voit que ses propres notes</rls>
+    </table>
+
+    <enums>
+      <enum nom="game_type_enum" valeurs="nlhe, plo, plo5, stud, razz, horse, mixed, other" />
+      <enum nom="game_format_enum" valeurs="cash_game, tournament, sit_and_go" />
+      <enum nom="location_type_enum" valeurs="casino, club, home_game, online" />
+      <enum nom="position_enum" valeurs="UTG, UTG1, UTG2, MP, MP1, LJ, HJ, CO, BTN, SB, BB" />
+      <enum nom="bankroll_tx_type_enum" valeurs="deposit, withdrawal, session_result, adjustment, bonus" />
+      <enum nom="tournament_structure_enum" valeurs="freezeout, rebuy, bounty, pko, satellite, hyper_turbo, turbo, deep_stack" />
+    </enums>
+
+    <vues_materialisees>
+      <vue nom="mv_session_stats_daily" description="Agrégation quotidienne des sessions">
+        <![CDATA[
+SELECT
+  user_id,
+  DATE(started_at AT TIME ZONE (SELECT timezone FROM profiles WHERE id = user_id)) AS play_date,
+  COUNT(*) AS session_count,
+  SUM(duration_minutes) AS total_minutes,
+  SUM(net_profit) AS total_profit,
+  AVG(net_profit) AS avg_profit,
+  SUM(CASE WHEN net_profit > 0 THEN 1 ELSE 0 END) AS winning_sessions,
+  SUM(buy_in_total) AS total_invested
+FROM sessions
+WHERE cash_out IS NOT NULL
+GROUP BY user_id, play_date;
+        ]]>
+      </vue>
+
+      <vue nom="mv_location_stats" description="Performance par lieu">
+        <![CDATA[
+SELECT
+  user_id,
+  location_id,
+  game_type,
+  COUNT(*) AS session_count,
+  SUM(net_profit) AS total_profit,
+  AVG(net_profit) AS avg_profit,
+  SUM(duration_minutes) AS total_hours,
+  CASE WHEN SUM(duration_minutes) > 0
+    THEN SUM(net_profit) / (SUM(duration_minutes) / 60.0)
+    ELSE 0
+  END AS hourly_rate
+FROM sessions
+WHERE cash_out IS NOT NULL
+GROUP BY user_id, location_id, game_type;
+        ]]>
+      </vue>
+    </vues_materialisees>
+
+    <fonctions_sql>
+      <fonction nom="calculate_hourly_rate" description="Calcule le taux horaire pour un ensemble de sessions">
+        <parametres>
+          <parametre nom="p_user_id" type="UUID" />
+          <parametre nom="p_game_type" type="game_type_enum" nullable="true" />
+          <parametre nom="p_date_from" type="TIMESTAMPTZ" nullable="true" />
+          <parametre nom="p_date_to" type="TIMESTAMPTZ" nullable="true" />
+        </parametres>
+        <retour>NUMERIC(12,2)</retour>
+        <description_calcul>SUM(net_profit) / (SUM(duration_minutes) / 60) filtré par paramètres</description_calcul>
+      </fonction>
+
+      <fonction nom="get_bankroll_balance" description="Retourne le solde actuel de la bankroll">
+        <parametres>
+          <parametre nom="p_user_id" type="UUID" />
+        </parametres>
+        <retour>NUMERIC(12,2)</retour>
+        <description_calcul>Dernière balance_after de bankroll_transactions OU bankroll_initial si aucune transaction</description_calcul>
+      </fonction>
+
+      <fonction nom="get_session_streak" description="Retourne la série en cours (winning/losing streak)">
+        <parametres>
+          <parametre nom="p_user_id" type="UUID" />
+        </parametres>
+        <retour>JSON { type: 'winning' | 'losing', count: INTEGER }</retour>
+      </fonction>
+    </fonctions_sql>
+
+    <triggers>
+      <trigger nom="on_session_complete" event="UPDATE" table="sessions" condition="OLD.cash_out IS NULL AND NEW.cash_out IS NOT NULL">
+        <description>
+          Quand une session est complétée (cash_out renseigné) :
+          1. Calcule automatiquement duration_minutes si non override
+          2. Crée une bankroll_transaction de type session_result
+          3. Met à jour le balance_after avec le net_profit
+          4. Set is_active = false
+        </description>
+      </trigger>
+      <trigger nom="on_buyin_change" event="INSERT OR UPDATE OR DELETE" table="buy_ins">
+        <description>
+          Met à jour sessions.buy_in_total = SUM(buy_ins.amount) pour la session
+        </description>
+      </trigger>
+      <trigger nom="update_timestamp" event="UPDATE" table="sessions, profiles, locations">
+        <description>Met à jour updated_at automatiquement</description>
+      </trigger>
+    </triggers>
+  </modele_de_donnees>
+
+  <!-- ================================================================ -->
+  <!--  5. FONCTIONNALITÉS DÉTAILLÉES                                   -->
+  <!-- ================================================================ -->
+  <fonctionnalites>
+
+    <!-- ============ MODULE AUTH ============ -->
+    <module nom="Authentification" priorite="P0" sprint="1">
+      <fonctionnalite id="AUTH-01" nom="Inscription">
+        <description>Inscription par email/password ou OAuth (Google, Apple)</description>
+        <regles>
+          <regle>Email validé par regex + confirmation par magic link</regle>
+          <regle>Password : min 8 chars, 1 majuscule, 1 chiffre</regle>
+          <regle>Création automatique du profil dans profiles via trigger Supabase</regle>
+          <regle>Timezone détecté automatiquement (Intl.DateTimeFormat)</regle>
+          <regle>Devise par défaut déduite de la locale</regle>
+        </regles>
+      </fonctionnalite>
+
+      <fonctionnalite id="AUTH-02" nom="Connexion">
+        <description>Login classique + OAuth + magic link + session persistante</description>
+        <regles>
+          <regle>Session JWT via Supabase Auth (refresh token automatique)</regle>
+          <regle>Remember me : session de 30 jours</regle>
+          <regle>Rate limiting : 5 tentatives / 15 min</regle>
+        </regles>
+      </fonctionnalite>
+
+      <fonctionnalite id="AUTH-03" nom="Réinitialisation mot de passe">
+        <description>Flux complet email de reset + formulaire de changement</description>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE DASHBOARD ============ -->
+    <module nom="Dashboard" priorite="P0" sprint="2">
+      <fonctionnalite id="DASH-01" nom="Vue d'ensemble">
+        <description>Page d'accueil post-connexion avec KPIs et graphiques</description>
+        <elements>
+          <element>KPI cards : Profit total, Hourly rate, Win rate, Sessions jouées</element>
+          <element>Graphique courbe : évolution du profit cumulé (30j / 90j / 1an / all-time)</element>
+          <element>Graphique barres : profit par jour/semaine/mois</element>
+          <element>Dernières sessions (5) avec statut rapide (+/-/en cours)</element>
+          <element>Bankroll actuelle avec indicateur de santé (vert/orange/rouge)</element>
+          <element>Session en cours (si active) avec timer live</element>
+          <element>Streak actuelle (winning/losing)</element>
+          <element>Best/Worst session du mois</element>
+        </elements>
+        <interactions>
+          <interaction>Clic sur un KPI = navigation vers stats détaillées</interaction>
+          <interaction>Sélecteur de période (preset + custom range)</interaction>
+          <interaction>Filtre par game_type et is_online</interaction>
+        </interactions>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE SESSIONS ============ -->
+    <module nom="Sessions" priorite="P0" sprint="2-3">
+
+      <fonctionnalite id="SESS-01" nom="Créer une session (Quick Start)">
+        <description>Saisie rapide optimisée pour le mobile en moins de 30 secondes</description>
+        <champs_obligatoires>
+          <champ>game_type (pré-rempli avec default_game_type du profil)</champ>
+          <champ>game_format (cash_game par défaut)</champ>
+          <champ>Premier buy-in (montant)</champ>
+        </champs_obligatoires>
+        <champs_optionnels>
+          <champ>Lieu (auto-complete avec favoris en premier)</champ>
+          <champ>Stakes (SB/BB, auto-complete basé sur l'historique du lieu)</champ>
+          <champ>Online / Live</champ>
+          <champ>Mood before (1-5 emoji)</champ>
+          <champ>Notes</champ>
+        </champs_optionnels>
+        <regles>
+          <regle>started_at = now() automatiquement (modifiable)</regle>
+          <regle>La session est immédiatement "active" (is_active = true)</regle>
+          <regle>Un seul timer de session actif par utilisateur</regle>
+          <regle>Les derniers stakes utilisés pour un lieu donné sont suggérés</regle>
+        </regles>
+        <ux>
+          <detail>Formulaire type "bottom sheet" sur mobile</detail>
+          <detail>Bouton FAB (Floating Action Button) accessible depuis toutes les pages</detail>
+          <detail>Animation satisfaisante de confirmation</detail>
+        </ux>
+      </fonctionnalite>
+
+      <fonctionnalite id="SESS-02" nom="Session en cours (Live Session)">
+        <description>Vue temps réel de la session active avec timer et actions rapides</description>
+        <elements>
+          <element>Timer live (heures:minutes:secondes) depuis started_at</element>
+          <element>Buy-in total courant</element>
+          <element>Bouton "Rebuy" pour ajouter un buy-in</element>
+          <element>Estimation profit/perte théorique (si stack déclaré)</element>
+          <element>Notes rapides</element>
+          <element>Ajouter une note de main (hand_notes)</element>
+        </elements>
+        <actions>
+          <action nom="Rebuy">Ajouter un montant au buy_in_total via buy_ins</action>
+          <action nom="Cash Out">
+            <description>Fermer la session avec le montant encaissé</description>
+            <regles>
+              <regle>Demande le montant cash_out</regle>
+              <regle>Calcule automatiquement profit et net_profit</regle>
+              <regle>Demande mood_after et focus_level</regle>
+              <regle>Crée la bankroll_transaction associée</regle>
+              <regle>Affiche un résumé avec animation (confetti si profit > 0)</regle>
+            </regles>
+          </action>
+          <action nom="Annuler la session">Supprime avec confirmation</action>
+        </actions>
+      </fonctionnalite>
+
+      <fonctionnalite id="SESS-03" nom="Saisie rétrospective">
+        <description>Ajouter une session passée avec dates manuelles</description>
+        <regles>
+          <regle>Tous les champs temporels sont éditables</regle>
+          <regle>Validation : ended_at > started_at</regle>
+          <regle>Cash out obligatoire (pas de session "en cours" dans le passé)</regle>
+          <regle>La bankroll_transaction est insérée à la bonne date chronologique</regle>
+          <regle>Recalcul du balance_after pour toutes les transactions suivantes</regle>
+        </regles>
+      </fonctionnalite>
+
+      <fonctionnalite id="SESS-04" nom="Liste des sessions">
+        <description>Tableau interactif avec tri, filtres et recherche</description>
+        <colonnes>Date, Lieu, Type, Stakes, Durée, Buy-in, Cash-out, Profit, €/h</colonnes>
+        <filtres>
+          <filtre>Période (presets + custom)</filtre>
+          <filtre>Game type</filtre>
+          <filtre>Lieu</filtre>
+          <filtre>Online / Live</filtre>
+          <filtre>Profit positif / négatif</filtre>
+          <filtre>Tags</filtre>
+        </filtres>
+        <features>
+          <feature>Tri par colonne (ascendant/descendant)</feature>
+          <feature>Pagination (20 par page, scroll infini mobile)</feature>
+          <feature>Ligne totale en bas avec sommes/moyennes</feature>
+          <feature>Code couleur profit (vert positif, rouge négatif)</feature>
+          <feature>Export CSV / PDF</feature>
+          <feature>Sélection multiple pour suppression en batch</feature>
+        </features>
+      </fonctionnalite>
+
+      <fonctionnalite id="SESS-05" nom="Détail d'une session">
+        <description>Page complète avec toutes les informations et notes de main</description>
+        <sections>
+          <section>En-tête : lieu, date, durée, type, stakes</section>
+          <section>Financier : buy-ins détaillés, cash-out, profit, pourboires, frais</section>
+          <section>Métriques : €/h, BB/h (si stakes renseignés), mood, focus</section>
+          <section>Notes de main associées (timeline)</section>
+          <section>Notes libres</section>
+          <section>Actions : modifier, dupliquer, supprimer</section>
+        </sections>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE TOURNOIS ============ -->
+    <module nom="Tournois" priorite="P1" sprint="4">
+
+      <fonctionnalite id="TOURN-01" nom="Saisie de tournoi">
+        <description>Formulaire adapté aux spécificités des tournois</description>
+        <champs>
+          <champ>Nom du tournoi</champ>
+          <champ>Structure (freezeout, rebuy, bounty, PKO, satellite)</champ>
+          <champ>Buy-in + Fee</champ>
+          <champ>Rebuys (nombre × coût unitaire)</champ>
+          <champ>Add-ons (nombre × coût unitaire)</champ>
+          <champ>Total entries</champ>
+          <champ>Position finale</champ>
+          <champ>Prize won</champ>
+          <champ>Bounties won (si bounty/PKO)</champ>
+          <champ>Garantie</champ>
+        </champs>
+        <calculs_automatiques>
+          <calcul>Total investi = buy-in + fee + (rebuys × coût) + (addons × coût)</calcul>
+          <calcul>Profit = prize_won + bounties_won - total_investi</calcul>
+          <calcul>ROI% = (profit / total_investi) × 100</calcul>
+          <calcul>ITM = prize_won > 0</calcul>
+        </calculs_automatiques>
+      </fonctionnalite>
+
+      <fonctionnalite id="TOURN-02" nom="Statistiques tournoi">
+        <elements>
+          <element>ROI moyen global et par structure</element>
+          <element>ITM% (In The Money)</element>
+          <element>Finish moyen (average finish position)</element>
+          <element>Total investi vs total gagné</element>
+          <element>Graphique ROI par tranche de buy-in</element>
+          <element>Distribution des positions finales (histogramme)</element>
+        </elements>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE BANKROLL ============ -->
+    <module nom="Bankroll" priorite="P0" sprint="3">
+
+      <fonctionnalite id="BANK-01" nom="Suivi de bankroll">
+        <description>Vue en temps réel de la bankroll avec graphique d'évolution</description>
+        <elements>
+          <element>Solde actuel (gros chiffre central)</element>
+          <element>Graphique évolution de la bankroll dans le temps</element>
+          <element>Profit/perte ce mois-ci</element>
+          <element>Profit/perte cette semaine</element>
+          <element>All-time high / low avec dates</element>
+        </elements>
+      </fonctionnalite>
+
+      <fonctionnalite id="BANK-02" nom="Dépôts et retraits">
+        <description>Gestion manuelle des mouvements hors sessions</description>
+        <regles>
+          <regle>Chaque mouvement est loggé dans bankroll_transactions</regle>
+          <regle>Le balance_after est calculé en cascade</regle>
+          <regle>Types : deposit, withdrawal, adjustment, bonus</regle>
+          <regle>Description obligatoire pour les adjustments</regle>
+        </regles>
+      </fonctionnalite>
+
+      <fonctionnalite id="BANK-03" nom="Recommandations de stakes">
+        <description>Suggestions de stakes basées sur la bankroll actuelle</description>
+        <regles_metier>
+          <regle>Cash game : bankroll ≥ 20 buy-ins du stake joué (recommandation conservative)</regle>
+          <regle>Tournois : bankroll ≥ 50 buy-ins moyens</regle>
+          <regle>Affichage "you can afford" avec les stakes possibles</regle>
+          <regle>Alerte quand la bankroll passe sous les seuils de sécurité</regle>
+          <regle>Possibilité d'ajuster les seuils (20/30/50 buy-ins)</regle>
+        </regles_metier>
+      </fonctionnalite>
+
+      <fonctionnalite id="BANK-04" nom="Alertes bankroll">
+        <alertes>
+          <alerte type="warning" condition="bankroll &lt; 15 buy-ins du stake habituel">
+            Attention : votre bankroll est en zone de risque pour vos stakes habituels.
+          </alerte>
+          <alerte type="danger" condition="bankroll &lt; 10 buy-ins du stake habituel">
+            Danger : envisagez de descendre de stakes ou de recharger.
+          </alerte>
+          <alerte type="info" condition="downswing > 10 buy-ins consécutifs">
+            Vous traversez un downswing important. Prenez une pause si nécessaire.
+          </alerte>
+          <alerte type="success" condition="ATH atteint">
+            Félicitations ! Vous avez atteint un nouveau record de bankroll.
+          </alerte>
+        </alertes>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE STATISTIQUES ============ -->
+    <module nom="Statistiques" priorite="P1" sprint="4-5">
+
+      <fonctionnalite id="STATS-01" nom="Statistiques globales">
+        <metriques>
+          <metrique nom="Profit total" calcul="SUM(net_profit)" />
+          <metrique nom="Nombre de sessions" calcul="COUNT(*)" />
+          <metrique nom="Win rate" calcul="sessions gagnantes / total sessions × 100" unite="%" />
+          <metrique nom="Hourly rate" calcul="SUM(net_profit) / SUM(duration_hours)" unite="€/h" />
+          <metrique nom="BB/h" calcul="SUM(net_profit / big_blind) / SUM(duration_hours)" unite="BB/h" condition="Stakes renseignés" />
+          <metrique nom="Session moyenne" calcul="AVG(net_profit)" unite="€" />
+          <metrique nom="Durée moyenne" calcul="AVG(duration_minutes)" unite="min" />
+          <metrique nom="Best session" calcul="MAX(net_profit)" />
+          <metrique nom="Worst session" calcul="MIN(net_profit)" />
+          <metrique nom="Écart-type" calcul="STDDEV(net_profit)" unite="€" description="Mesure de la variance" />
+          <metrique nom="Biggest upswing" calcul="Plus grande série consécutive de gains" />
+          <metrique nom="Biggest downswing" calcul="Plus grande série consécutive de pertes" />
+        </metriques>
+      </fonctionnalite>
+
+      <fonctionnalite id="STATS-02" nom="Graphiques et visualisations">
+        <graphiques>
+          <graphique type="line" nom="Évolution du profit cumulé" x="date" y="cumulative_profit">
+            <options>Périodes : 7j, 30j, 90j, YTD, 1an, all-time</options>
+          </graphique>
+          <graphique type="bar" nom="Profit par période" x="période" y="profit">
+            <options>Granularité : jour, semaine, mois</options>
+          </graphique>
+          <graphique type="bar" nom="Performance par lieu" x="location" y="hourly_rate" />
+          <graphique type="bar" nom="Performance par game type" x="game_type" y="profit" />
+          <graphique type="pie" nom="Répartition du temps par format" />
+          <graphique type="heatmap" nom="Heatmap des sessions" x="jour semaine" y="heure" z="profit">
+            <description>Identifier les créneaux les plus profitables</description>
+          </graphique>
+          <graphique type="scatter" nom="Durée vs Profit" x="duration" y="profit">
+            <description>Corréler la durée des sessions avec la rentabilité</description>
+          </graphique>
+          <graphique type="histogram" nom="Distribution des résultats" x="profit_range" y="count" />
+          <graphique type="line" nom="Évolution du hourly rate (rolling)" window="20 sessions" />
+        </graphiques>
+      </fonctionnalite>
+
+      <fonctionnalite id="STATS-03" nom="Filtrage avancé">
+        <filtres_combinables>
+          <filtre>Période (date range)</filtre>
+          <filtre>Game type (multi-select)</filtre>
+          <filtre>Game format (cash / tournoi / SNG)</filtre>
+          <filtre>Lieu (multi-select)</filtre>
+          <filtre>Online / Live</filtre>
+          <filtre>Stakes (range ou exact)</filtre>
+          <filtre>Tags</filtre>
+          <filtre>Jours de la semaine</filtre>
+          <filtre>Heures de la journée</filtre>
+        </filtres_combinables>
+        <regles>
+          <regle>Les filtres sont persistants dans l'URL (shareable)</regle>
+          <regle>Preset "favoris" sauvegardables</regle>
+          <regle>Reset all filters en un clic</regle>
+        </regles>
+      </fonctionnalite>
+
+      <fonctionnalite id="STATS-04" nom="Comparaisons">
+        <comparaisons>
+          <comparaison>Online vs Live</comparaison>
+          <comparaison>Cash game vs Tournoi</comparaison>
+          <comparaison>NLHE vs PLO</comparaison>
+          <comparaison>Période A vs Période B</comparaison>
+          <comparaison>Lieu A vs Lieu B</comparaison>
+          <comparaison>Semaine vs Weekend</comparaison>
+          <comparaison>Session courte (&lt;4h) vs Session longue (>4h)</comparaison>
+        </comparaisons>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE LIEUX ============ -->
+    <module nom="Lieux" priorite="P1" sprint="3">
+      <fonctionnalite id="LOC-01" nom="Gestion des lieux">
+        <description>CRUD complet des lieux de jeu avec stats par lieu</description>
+        <features>
+          <feature>Créer/modifier/archiver des lieux</feature>
+          <feature>Marquer un lieu comme favori</feature>
+          <feature>Voir les stats par lieu (profit, hourly, sessions jouées)</feature>
+          <feature>Auto-suggest lors de la création de session</feature>
+          <feature>Distinction live (casino/club/home) et online (plateforme)</feature>
+        </features>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE NOTES DE MAIN ============ -->
+    <module nom="Notes de main" priorite="P2" sprint="5">
+      <fonctionnalite id="HAND-01" nom="Journal de mains">
+        <description>Prendre des notes rapides sur des mains remarquables pendant ou après une session</description>
+        <features>
+          <feature>Saisie rapide : position, cartes, board, résultat</feature>
+          <feature>Champ "leçon apprise" pour le travail mental</feature>
+          <feature>Tags pour catégoriser (bluff, bad beat, hero call, etc.)</feature>
+          <feature>Recherche full-text dans les notes</feature>
+          <feature>Timeline des notes attachées à une session</feature>
+          <feature>Visualisation des cartes avec icônes de couleurs</feature>
+        </features>
+      </fonctionnalite>
+    </module>
+
+    <!-- ============ MODULE PARAMÈTRES ============ -->
+    <module nom="Paramètres" priorite="P0" sprint="2">
+      <fonctionnalite id="SET-01" nom="Profil utilisateur">
+        <champs>
+          <champ>Display name</champ>
+          <champ>Avatar (upload)</champ>
+          <champ>Devise par défaut</champ>
+          <champ>Timezone</champ>
+          <champ>Game type par défaut</champ>
+          <champ>Stakes par défaut</champ>
+        </champs>
+      </fonctionnalite>
+
+      <fonctionnalite id="SET-02" nom="Préférences d'affichage">
+        <champs>
+          <champ>Thème (dark/light/system)</champ>
+          <champ>Format de date</champ>
+          <champ>Format de devise (symbole avant/après, séparateur)</champ>
+          <champ>Seuils de bankroll personnalisables</champ>
+        </champs>
+      </fonctionnalite>
+
+      <fonctionnalite id="SET-03" nom="Export / Import">
+        <features>
+          <feature>Export CSV de toutes les sessions</feature>
+          <feature>Export PDF rapport mensuel/annuel</feature>
+          <feature>Import CSV (mapping de colonnes intelligent)</feature>
+          <feature>Import depuis autres trackers (Poker Bankroll Tracker, etc.)</feature>
+        </features>
+      </fonctionnalite>
+
+      <fonctionnalite id="SET-04" nom="Gestion du compte">
+        <features>
+          <feature>Changer le mot de passe</feature>
+          <feature>Supprimer le compte (avec confirmation et délai de grâce 30j)</feature>
+          <feature>Export de toutes les données (RGPD)</feature>
+        </features>
+      </fonctionnalite>
+    </module>
+  </fonctionnalites>
+
+  <!-- ================================================================ -->
+  <!--  6. LOGIQUE MÉTIER CRITIQUE                                      -->
+  <!-- ================================================================ -->
+  <logique_metier>
+
+    <regle_critique id="BIZ-01" nom="Intégrité financière">
+      <description>Tous les calculs financiers doivent être exacts au centime près</description>
+      <regles>
+        <regle>Utiliser NUMERIC(12,2) en PostgreSQL, jamais FLOAT</regle>
+        <regle>Côté client : utiliser des librairies de calcul décimal (decimal.js ou calculs en centimes)</regle>
+        <regle>Arrondir uniquement à l'affichage, jamais dans les calculs intermédiaires</regle>
+        <regle>Les colonnes générées (profit, net_profit) sont calculées côté base</regle>
+        <regle>Double vérification client + serveur de tous les montants</regle>
+      </regles>
+    </regle_critique>
+
+    <regle_critique id="BIZ-02" nom="Gestion des fuseaux horaires">
+      <description>Toutes les dates sont stockées en UTC et converties à l'affichage</description>
+      <regles>
+        <regle>Stockage : TIMESTAMPTZ (toujours UTC en base)</regle>
+        <regle>Saisie : l'utilisateur saisit en heure locale (timezone de son profil)</regle>
+        <regle>Affichage : conversion vers la timezone du profil utilisateur</regle>
+        <regle>Les agrégations "par jour" utilisent la timezone de l'utilisateur</regle>
+        <regle>Le heatmap jour/heure utilise l'heure locale</regle>
+        <regle>En cas de voyage, l'utilisateur peut override la timezone par session</regle>
+      </regles>
+    </regle_critique>
+
+    <regle_critique id="BIZ-03" nom="Gestion multi-devises">
+      <description>Support de plusieurs devises avec conversion optionnelle</description>
+      <regles>
+        <regle>Chaque session a sa propre devise</regle>
+        <regle>Les statistiques globales sont calculées dans la devise par défaut du profil</regle>
+        <regle>Pas de conversion automatique : les sessions dans d'autres devises sont exclues des stats ou converties manuellement</regle>
+        <regle>Devises supportées au lancement : EUR, USD, GBP, CAD, AUD, CHF</regle>
+        <regle>Le symbole et le format suivent la locale (1.234,56 € vs $1,234.56)</regle>
+      </regles>
+    </regle_critique>
+
+    <regle_critique id="BIZ-04" nom="Bankroll chain integrity">
+      <description>La chaîne de transactions bankroll doit être cohérente</description>
+      <regles>
+        <regle>Chaque transaction a un balance_after = balance_before + amount</regle>
+        <regle>Les transactions sont ordonnées chronologiquement par created_at</regle>
+        <regle>L'insertion d'une session rétrospective déclenche un recalcul en cascade</regle>
+        <regle>La suppression d'une session déclenche une transaction d'ajustement inverse</regle>
+        <regle>Un job de réconciliation vérifie l'intégrité périodiquement</regle>
+        <regle>Le solde actuel ne peut jamais diverger de la somme des transactions</regle>
+      </regles>
+    </regle_critique>
+
+    <regle_critique id="BIZ-05" nom="Calcul du hourly rate">
+      <description>Le taux horaire est le KPI principal, son calcul doit être précis</description>
+      <formule>hourly_rate = SUM(net_profit) / (SUM(duration_minutes) / 60)</formule>
+      <regles>
+        <regle>Exclure les sessions sans durée (duration_minutes NULL ou 0)</regle>
+        <regle>Exclure les sessions non complétées (cash_out IS NULL)</regle>
+        <regle>Le net_profit inclut la déduction des tips et expenses</regle>
+        <regle>Le BB/h nécessite des stakes renseignés : SUM(profit_in_bb) / SUM(hours)</regle>
+        <regle>Rolling hourly (20 dernières sessions) pour identifier les tendances</regle>
+      </regles>
+    </regle_critique>
+
+    <regle_critique id="BIZ-06" nom="Sessions concurrentes">
+      <description>Gestion des sessions qui se chevauchent</description>
+      <regles>
+        <regle>Un seul timer actif (is_active = true) par utilisateur</regle>
+        <regle>Les sessions rétrospectives peuvent se chevaucher (2 tables simultanées)</regle>
+        <regle>Le dashboard affiche toujours la session active en priorité</regle>
+        <regle>Alerte si une session rétrospective chevauche une session existante</regle>
+      </regles>
+    </regle_critique>
+
+    <regle_critique id="BIZ-07" nom="Validation des stakes">
+      <description>Cohérence des informations de stakes</description>
+      <regles>
+        <regle>big_blind > small_blind (toujours)</regle>
+        <regle>Si ante : ante ≤ big_blind</regle>
+        <regle>Le straddle double le big_blind</regle>
+        <regle>Formats d'affichage : "1/2", "2/5", "5/10" (SB/BB)</regle>
+        <regle>max_buyin_bb entre 20 et 500 (avec override possible)</regle>
+      </regles>
+    </regle_critique>
+  </logique_metier>
+
+  <!-- ================================================================ -->
+  <!--  7. DESIGN ET UX                                                 -->
+  <!-- ================================================================ -->
+  <design_ux>
+
+    <principes_design>
+      <principe>Mobile-first : chaque écran est d'abord conçu pour mobile</principe>
+      <principe>Contraste élevé : WCAG AA minimum pour tous les textes</principe>
+      <principe>Couleurs contextuelles : vert = profit, rouge = perte, toujours</principe>
+      <principe>Micro-interactions : feedback haptique et visuel sur chaque action</principe>
+      <principe>Densité d'information adaptative : compacte sur mobile, spacieuse sur desktop</principe>
+      <principe>Zéro page blanche : états vides guidés avec CTA clairs</principe>
+    </principes_design>
+
+    <theme>
+      <mode_sombre default="true">
+        <justification>
+          Les joueurs de poker utilisent souvent l'app en casino (environnement sombre)
+          ou la nuit. Le dark mode est le mode par défaut.
+        </justification>
+      </mode_sombre>
+      <palette>
+        <couleur role="background" dark="oklch(0.15 0.01 260)" light="oklch(0.99 0.005 260)" />
+        <couleur role="card" dark="oklch(0.20 0.015 260)" light="oklch(0.97 0.005 260)" />
+        <couleur role="primary" valeur="oklch(0.65 0.19 145)" description="Vert poker, actions principales" />
+        <couleur role="profit" valeur="oklch(0.72 0.19 145)" description="Vert vif pour les gains" />
+        <couleur role="loss" valeur="oklch(0.62 0.22 25)" description="Rouge pour les pertes" />
+        <couleur role="accent" valeur="oklch(0.65 0.15 250)" description="Bleu pour les éléments interactifs" />
+        <couleur role="warning" valeur="oklch(0.75 0.15 65)" description="Orange pour les alertes" />
+        <couleur role="muted" dark="oklch(0.35 0.01 260)" light="oklch(0.55 0.01 260)" />
+      </palette>
+      <typographie>
+        <font_principale>Inter (Google Fonts)</font_principale>
+        <font_chiffres>Tabular nums (font-variant-numeric: tabular-nums) pour l'alignement</font_chiffres>
+        <taille_base>16px mobile, 14px desktop dense (tables)</taille_base>
+      </typographie>
+      <bordures>
+        <radius>0.75rem (rounded-xl par défaut)</radius>
+        <style>Subtil, 1px solid, opacity basse</style>
+      </bordures>
+    </theme>
+
+    <responsive>
+      <breakpoint nom="mobile" min="0" max="639">
+        <layout>Single column, bottom navigation, FAB pour new session</layout>
+      </breakpoint>
+      <breakpoint nom="tablet" min="640" max="1023">
+        <layout>Two columns, sidebar collapsable</layout>
+      </breakpoint>
+      <breakpoint nom="desktop" min="1024" max="infinity">
+        <layout>Sidebar fixe + contenu principal + panel détail optionnel</layout>
+      </breakpoint>
+    </responsive>
+
+    <navigation>
+      <mobile>
+        <type>Bottom tab bar (5 items max)</type>
+        <items>
+          <item icone="LayoutDashboard">Dashboard</item>
+          <item icone="ListChecks">Sessions</item>
+          <item icone="PlusCircle" special="FAB">Nouvelle session</item>
+          <item icone="BarChart3">Stats</item>
+          <item icone="Wallet">Bankroll</item>
+        </items>
+      </mobile>
+      <desktop>
+        <type>Sidebar gauche avec icônes + labels</type>
+        <items>
+          <item>Dashboard</item>
+          <item>Sessions</item>
+          <item>Tournois</item>
+          <item>Statistiques</item>
+          <item>Bankroll</item>
+          <item>Lieux</item>
+          <item>Notes de main</item>
+          <item separator="true" />
+          <item>Paramètres</item>
+        </items>
+      </desktop>
+    </navigation>
+
+    <animations>
+      <animation trigger="profit_affiché" type="countUp" description="Les montants s'animent de 0 à la valeur finale" />
+      <animation trigger="session_terminée_profit" type="confetti" description="Pluie de confettis discrète si session gagnante" />
+      <animation trigger="navigation" type="viewTransition" description="Transition fluide entre les pages (View Transitions API)" />
+      <animation trigger="graphique_chargé" type="draw" description="Les courbes se dessinent progressivement" />
+      <animation trigger="kpi_change" type="spring" description="Les KPI rebondissent légèrement au changement" />
+    </animations>
+
+    <accessibilite>
+      <standard>WCAG 2.1 AA</standard>
+      <regles>
+        <regle>Contraste minimum 4.5:1 pour le texte, 3:1 pour les éléments interactifs</regle>
+        <regle>Navigation clavier complète</regle>
+        <regle>Labels ARIA sur tous les éléments interactifs</regle>
+        <regle>Couleurs jamais seul vecteur d'information (icônes ▲▼ + couleur)</regle>
+        <regle>Focus visible sur tous les éléments</regle>
+        <regle>Taille minimum des zones tactiles : 44×44px</regle>
+      </regles>
+    </accessibilite>
+  </design_ux>
+
+  <!-- ================================================================ -->
+  <!--  8. SÉCURITÉ                                                     -->
+  <!-- ================================================================ -->
+  <securite>
+    <principes>
+      <principe>Zero-trust : RLS sur TOUTES les tables, aucune exception</principe>
+      <principe>Validation double : Zod côté client + contraintes PostgreSQL côté serveur</principe>
+      <principe>Pas de données sensibles côté client (pas de solde en localStorage)</principe>
+      <principe>HTTPS obligatoire</principe>
+      <principe>CSP headers stricts</principe>
+    </principes>
+
+    <rls_policies>
+      <policy table="*" operation="SELECT">auth.uid() = user_id</policy>
+      <policy table="*" operation="INSERT">auth.uid() = user_id</policy>
+      <policy table="*" operation="UPDATE">auth.uid() = user_id</policy>
+      <policy table="*" operation="DELETE">auth.uid() = user_id</policy>
+    </rls_policies>
+
+    <rate_limiting>
+      <regle endpoint="auth/*" limite="5 req/15 min" />
+      <regle endpoint="api/*" limite="100 req/min" />
+      <regle endpoint="sessions/create" limite="10 req/min" />
+    </rate_limiting>
+
+    <rgpd>
+      <regle>Consentement explicite à l'inscription</regle>
+      <regle>Droit à l'export (toutes les données en JSON/CSV)</regle>
+      <regle>Droit à l'effacement (suppression complète après délai de grâce)</regle>
+      <regle>Pas de tracking tiers (pas de Google Analytics)</regle>
+      <regle>Données hébergées en EU (Supabase EU region)</regle>
+      <regle>Politique de confidentialité claire et accessible</regle>
+    </rgpd>
+  </securite>
+
+  <!-- ================================================================ -->
+  <!--  9. PERFORMANCES                                                 -->
+  <!-- ================================================================ -->
+  <performances>
+    <objectifs>
+      <objectif metrique="LCP" cible="&lt; 1.5s" description="Largest Contentful Paint" />
+      <objectif metrique="FID" cible="&lt; 100ms" description="First Input Delay" />
+      <objectif metrique="CLS" cible="&lt; 0.1" description="Cumulative Layout Shift" />
+      <objectif metrique="INP" cible="&lt; 200ms" description="Interaction to Next Paint" />
+      <objectif metrique="TTFB" cible="&lt; 200ms" description="Time To First Byte" />
+      <objectif metrique="Bundle size" cible="&lt; 150KB" description="JS initial gzippé" />
+    </objectifs>
+
+    <strategies>
+      <strategie>Server Components par défaut (minimal client JS)</strategie>
+      <strategie>Streaming SSR avec Suspense boundaries</strategie>
+      <strategie>Lazy loading des graphiques (Recharts) et tables (TanStack)</strategie>
+      <strategie>Images optimisées via next/image</strategie>
+      <strategie>Vues matérialisées pour les agrégations lourdes</strategie>
+      <strategie>Index PostgreSQL ciblés sur les requêtes fréquentes</strategie>
+      <strategie>Pagination côté serveur (cursor-based, pas offset)</strategie>
+      <strategie>Turbopack pour le dev (build instantané)</strategie>
+      <strategie>Prefetch intelligent des routes (Next.js 16 incremental prefetching)</strategie>
+    </strategies>
+  </performances>
+
+  <!-- ================================================================ -->
+  <!--  10. PLANNING ET SPRINTS                                         -->
+  <!-- ================================================================ -->
+  <planning>
+    <sprint numero="1" duree="2 semaines" nom="Fondations">
+      <taches>
+        <tache>Setup projet Next.js 16.1 + Tailwind v4 + shadcn/ui</tache>
+        <tache>Configuration Supabase (schema, RLS, Auth)</tache>
+        <tache>Authentification complète (inscription, login, reset)</tache>
+        <tache>Layout principal (sidebar, navigation, responsive)</tache>
+        <tache>Design system (thème, composants de base)</tache>
+        <tache>CI/CD pipeline</tache>
+      </taches>
+    </sprint>
+
+    <sprint numero="2" duree="2 semaines" nom="Sessions Core">
+      <taches>
+        <tache>Dashboard v1 (KPIs, dernières sessions)</tache>
+        <tache>Création de session (quick start)</tache>
+        <tache>Session en cours (timer, rebuy, cash out)</tache>
+        <tache>Liste des sessions avec filtres</tache>
+        <tache>Détail de session</tache>
+        <tache>Paramètres profil</tache>
+      </taches>
+    </sprint>
+
+    <sprint numero="3" duree="2 semaines" nom="Bankroll + Lieux">
+      <taches>
+        <tache>Module bankroll complet</tache>
+        <tache>Gestion des lieux</tache>
+        <tache>Saisie rétrospective</tache>
+        <tache>Alertes bankroll</tache>
+        <tache>Session rétrospective + recalcul bankroll</tache>
+      </taches>
+    </sprint>
+
+    <sprint numero="4" duree="2 semaines" nom="Stats + Tournois">
+      <taches>
+        <tache>Module statistiques (métriques + graphiques)</tache>
+        <tache>Filtrage avancé</tache>
+        <tache>Module tournois</tache>
+        <tache>Comparaisons</tache>
+        <tache>Vues matérialisées et optimisations</tache>
+      </taches>
+    </sprint>
+
+    <sprint numero="5" duree="2 semaines" nom="Polish + Extras">
+      <taches>
+        <tache>Notes de main</tache>
+        <tache>Export CSV / PDF</tache>
+        <tache>Import CSV</tache>
+        <tache>PWA (manifest, service worker, offline)</tache>
+        <tache>Animations et micro-interactions</tache>
+        <tache>Tests E2E</tache>
+        <tache>Performance audit et optimisations</tache>
+      </taches>
+    </sprint>
+
+    <sprint numero="6" duree="1 semaine" nom="Launch">
+      <taches>
+        <tache>Beta testing</tache>
+        <tache>Bug fixes</tache>
+        <tache>SEO et landing page</tache>
+        <tache>Documentation utilisateur</tache>
+        <tache>Déploiement production</tache>
+      </taches>
+    </sprint>
+
+    <duree_totale>11 semaines (~3 mois)</duree_totale>
+  </planning>
+
+  <!-- ================================================================ -->
+  <!--  11. ÉVOLUTIONS FUTURES (POST-MVP)                               -->
+  <!-- ================================================================ -->
+  <evolutions_futures>
+    <evolution priorite="haute">Mode multi-joueurs : partager des sessions avec des amis</evolution>
+    <evolution priorite="haute">Analyse IA : insights automatiques sur les patterns de jeu</evolution>
+    <evolution priorite="moyenne">Intégration API de salles en ligne (PokerStars, Winamax, GGPoker)</evolution>
+    <evolution priorite="moyenne">Leaderboards anonymisés entre joueurs</evolution>
+    <evolution priorite="moyenne">Objectifs et achievements (gamification)</evolution>
+    <evolution priorite="moyenne">Calendrier de tournois (scraped ou manuel)</evolution>
+    <evolution priorite="basse">App native React Native / Expo</evolution>
+    <evolution priorite="basse">Suivi des dépenses annexes (voyages poker)</evolution>
+    <evolution priorite="basse">Mode coach : partager ses stats avec un coach</evolution>
+    <evolution priorite="basse">Intégration hand history parsers (PokerTracker, Hold'em Manager)</evolution>
+  </evolutions_futures>
+
+  <!-- ================================================================ -->
+  <!--  12. CRITÈRES D'ACCEPTATION GLOBAUX                              -->
+  <!-- ================================================================ -->
+  <criteres_acceptation>
+    <critere categorie="Fonctionnel">Toutes les fonctionnalités P0 sont opérationnelles et testées</critere>
+    <critere categorie="Performance">Core Web Vitals dans les objectifs (LCP &lt; 1.5s, INP &lt; 200ms)</critere>
+    <critere categorie="Sécurité">Audit RLS : aucune donnée accessible cross-user</critere>
+    <critere categorie="Sécurité">Aucune donnée financière stockée côté client</critere>
+    <critere categorie="UX">Saisie de session en moins de 30 secondes sur mobile</critere>
+    <critere categorie="UX">Score Lighthouse > 90 sur toutes les catégories</critere>
+    <critere categorie="Fiabilité">Aucune erreur de calcul sur les montants (tests automatisés)</critere>
+    <critere categorie="Fiabilité">Bankroll chain integrity vérifiée (réconciliation 100%)</critere>
+    <critere categorie="Responsive">Toutes les pages fonctionnelles de 320px à 2560px</critere>
+    <critere categorie="Accessibilité">WCAG 2.1 AA sur toutes les pages</critere>
+    <critere categorie="Tests">Couverture > 80% sur la logique métier critique</critere>
+    <critere categorie="RGPD">Export et suppression de données fonctionnels</critere>
+  </criteres_acceptation>
+
+</cahier_des_charges>
