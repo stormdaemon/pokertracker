@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ""} https://*.supabase.co`,
+              `connect-src 'self' ${(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim()} https://*.supabase.co`,
               "frame-ancestors 'none'",
             ].join("; "),
           },
